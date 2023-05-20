@@ -5,7 +5,7 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       useNewUrlParser: true,
     });
-    console.log('Connected to db');
+    console.log(`Connected to database: [${process.env.DATABASE_URI}]`);
   } catch (err) {
     console.log(`Could not initialize server. ${err}`);
     process.exit(1);
