@@ -2,8 +2,8 @@ const {save} = require('../services/account-service');
 const {CLIENT_ERROR, REQUIRED_INPUT, RESPONSE_CREATED, SERVER_ERROR} = require('../constants/api-strings');
 const register = async (request, response) => {
 
-   const { emailAddress, phoneNumber, password, firstName, lastName, dateOfBirth, idNumber } = request.body;
-   if (!emailAddress || !phoneNumber || !password || !firstName || !lastName || !dateOfBirth || !idNumber){
+   const { emailAddress, phoneNumber, accountPassword, firstName, lastName, dateOfBirth, idNumber } = request.body;
+   if (!emailAddress || !phoneNumber || !accountPassword || !firstName || !lastName || !dateOfBirth || !idNumber){
     return response.status(CLIENT_ERROR).json({
             data: {
                 error: REQUIRED_INPUT,

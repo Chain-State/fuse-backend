@@ -2,6 +2,29 @@ const {randomUUID} = require('crypto');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+
+
+const WalletSchema = new Schema({
+    id: {
+        type: String,
+        default: '',
+    },
+    name: {
+        type: String,
+        default: '',
+    },
+    assets: {
+        type: Object,
+        default: {},
+    },
+    balance: {
+        type: Object,
+        default: {},
+    }
+
+});
+
+
 const accountSchema = new Schema(
     {
         uuid: {
@@ -36,6 +59,10 @@ const accountSchema = new Schema(
             type: String,
             required: true,
         },
+        wallet: {
+            type: WalletSchema,
+            default: {},
+        }
     },
         {timestamps: true},
 );

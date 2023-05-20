@@ -1,6 +1,12 @@
 //root path
 const API_V1 = '/api/v1';
 
+//Cardano-wallet constants
+const WALLET_SERVER = 'http://127.0.0.1:8090/v2';
+const SEED_SIZE = 24;
+const WALLET_NAME_PREFIX = 'FP_';
+
+
 //app routes 
 const REGISTER = '/register'
 
@@ -13,16 +19,23 @@ const CLIENT_ERROR = 400;
 
 //errors
 const REQUIRED_INPUT = 'Required data missing';
+const ERR_WALLET_NOT_FOUND = 'Could not find wallet for this transaction';
+const ERR_TX_DATA_MISSING = 'Data required for transaction is missing';
 
-const SAVE_FAIL = 'Could not save data';
+const ERR_SAVE_FAIL = 'Could not save data';
 
 module.exports = {
     API_V1,
+    WALLET_SERVER,
+    WALLET_NAME_PREFIX,
+    SEED_SIZE,
     REGISTER,
     RESPONSE_CREATED,
     RESPONSE_OK,
     SERVER_ERROR,
     CLIENT_ERROR,
     REQUIRED_INPUT,
-    SAVE_FAIL,
+    ERR_SAVE_FAIL,
+    ERR_WALLET_NOT_FOUND,
+    ERR_TX_DATA_MISSING
 };
