@@ -1,8 +1,13 @@
+const {randomUUID} = require('crypto');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const accountSchema = new Schema(
     {
+        uuid: {
+            type: String,
+            default: () => randomUUID() 
+        },
         emailAddress: {
             type: String,
             required: true,
