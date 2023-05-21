@@ -24,6 +24,11 @@ const ERR_TX_DATA_MISSING = 'Data required for transaction is missing';
 
 const ERR_SAVE_FAIL = 'Could not save data';
 
+//security strings
+const CIPHER_ALGORITHM = 'aes-256-cbc';
+const STR_BASE64 = 'base64';
+const STR_UTF8 = 'utf8';
+
 module.exports = {
     API_V1,
     WALLET_SERVER,
@@ -37,5 +42,8 @@ module.exports = {
     REQUIRED_INPUT,
     ERR_SAVE_FAIL,
     ERR_WALLET_NOT_FOUND,
-    ERR_TX_DATA_MISSING
+    ERR_TX_DATA_MISSING,
+    CIPHER_ALGORITHM,
+    STR_BASE64,
+    STR_UTF8,
 };
