@@ -2,12 +2,13 @@ import fetch from "node-fetch";
 import url from "url";
 import * as dotenv from 'dotenv';
 import transaction from "../database/transaction";
+import account from "../database/account";
 
 dotenv.config();
 
-const callbackString = 'https://59dfdd5ebb0249.lhr.life/andr-tandaa/us-central1/transferAssets';
+const callbackString = 'https://59dfdd5ebb0249.lhr.life/api/v1/transfer';
 const MPESA_AUTH_TOKEN = 'rgGMe8hrGQZKH4iREC2Por2jAyRQ';
-const CW_SERVER = 'http://13.36.39.234:8090/v2/wallets/1299b5d429f8a79abc507ea6b906b16afb0a3625';
+const CW_SERVER = 'http://13.36.39.234:8090/v2/wallets/';
 const PaymentRequest = {
     BusinessShortCode: 174379,
     Password: "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjMwNDEwMTQxMTI3",
@@ -22,51 +23,58 @@ const PaymentRequest = {
     TransactionDesc: "B-600ADA"
 }
 
-const processTransaction = async (transactionDetails) => {
+let targetAcc =  null;
 
-    // const headers = new Headers();
-    // headers.append("Content-Type", "application/json");
-    // headers.append("Authorization", "Bearer " + MPESA_AUTH_TOKEN);
+const processTransaction = async (transactionDetails) => {
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    headers.append("Authorization", "Bearer " + MPESA_AUTH_TOKEN);
     const { userUuid, assetType, quantity, paymentAmount } = transactionDetails;
+
+    //get this user account ready for transaction
+    try{
+        targetAcc = await account.findOne({uuid: userUuid}).exec();
+    } catch (error) {
+        console.log(`Error getting user ccount for tx`);
+    }
+
+    //save the transaction
+    const added;
     try {
         added = await transaction.create({
-            userUuid: userUuid,
+            account: userUuid,
             assetType: assetType,
             quantity: quantity,
             paymentAmount: paymentAmount,
         });
-    } catch (error) {
-        console.log(`Transaction failed: ${error}`);
-    }
-    PaymentRequest.CallBackURL = callbackString + "?id=" + userUuid;
-    const txBody = {
-        ...body,
-        paymentRequest: PaymentRequest,
-    };
-    await docRef.set(txBody);
-    console.log(`Added transaction with Id: ${JSON.stringify(docRef.id)}`);
-    const paymentRequestData = await requestPayment(headers, txBody);
+
+    PaymentRequest.CallBackURL = callbackString + "?save_id=" + added._id + "?account=" + targetAcc.wallet.walletName;
+    // const txBody = {
+    //     ...transactionDetails,
+    //     paymentRequest: PaymentRequest,
+    // };
+    const paymentRequestData = await requestPayment(headers, PaymentRequest);
     if (paymentRequestData) {
-        docRef = firestore.doc(`transactions/${docRef.id}`);
-        await docRef.update({
-            paymentRequestResponse: paymentRequestData,
-        });
-        response.json(paymentRequestData);
+        //save this payment response
+       response.json(paymentRequestData);
     } else {
         throw new Error('Some error occurred in payment processing...')
     }
+    } catch (error) {
+        console.log(`Transaction failed: ${error}`);
+    }
+
 }
 
-const requestPayment = async (headers, txBody) => {
-    console.log(headers);
-    console.log(JSON.stringify(txBody));
+//MPESA payment request with callback
+const requestPayment = async (headers, paymentRequest) => {
     try {
         const payRequestResponse = await fetch(
             'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
             {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(txBody.paymentRequest),
+                body: JSON.stringify(paymentRequest),
             }
         );
         if (payRequestResponse.ok) {
@@ -91,43 +99,61 @@ const requestPayment = async (headers, txBody) => {
  * @param {*} transactionId 
  * @returns 
  */
-const fulfilTransfer = async () => {
-    const transactionId = url.parse(request.url, true).query.id;
+const transfer = async () => {
+    const transactionId = url.parse(request.url, true).query.save_id;
+    const walletName = url.parse(request.url, true).query.account;
     let paymentConfirmation = request.body;
     paymentConfirmation = {
         transactionId: transactionId,
         ...paymentConfirmation,
     };
+    //save this response 
 
     console.log(`transactionId=${transactionId}`);
-    const walletUrl = CW_SERVER;
+    //get the wallet for this user
+    // try{
+    //     walletName = await account.findOne({'wallet.name': transactionId}, 'name').exec();
+    // } catch(error) {
+    //     console.log(`Fatal: ${wallet}`);
+    // }
+    if(!walletName) {
+        throw new Error(`Could not find the wallet with id: ${walletName}`)
+    }
+    const walletUrl = CW_SERVER + walletName;
     let assetData;
+    let data = null;
     try {
-        const transactionsRef = firestore.collection('transactions').doc(transactionId);
-        const tx = await transactionsRef.get();
-        console.log(`tx doc ${JSON.stringify(tx.data())}`);
-        if (!tx.exists) {
+        //check if a transaction matching the body details is saved in the database
+        assetData = await transaction.findOne({account: transactionId});
+        if (!assetData) {
             throw new Error(`Transaction with id ${transactionId} not found`);
-        } else {
-            assetData = tx.data();
-        }
+        } 
     } catch (error) {
         console.log(error);
     }
-    const { address, tokenQuantity } = assetData;
-    let data = null;
+ //get address from wallet
+    let response = await fetch(`${walletUrl}/addresses`);
+        if (response.ok) {
+            data = await response.json();
+            console.log(`wallet addresses: ${data}`);
+        }
+        else {
+            throw new Error(`Error fetching address`)
+        }
+        const address = data[0].id;
+        
+    const { quantity } = assetData;
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const details = {
         payments: [
             {
                 address: address,
-                amount: { quantity: parseFloat(tokenQuantity), unit: "lovelace" },
+                amount: { quantity: parseFloat(quantity), unit: "lovelace" },
             },
         ],
     };
-
-    try {
+       try {
         let response = await fetch(`${walletUrl}/transactions-construct`, {
             method: "POST",
             headers: headers,
@@ -145,11 +171,13 @@ const fulfilTransfer = async () => {
         console.log(error);
     }
     try {
+        //fetch and decrypt password for this wallet account
+
         const response = await fetch(`${walletUrl}/transactions-sign`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
-                passphrase: "testpassword",
+                passphrase: ,
                 transaction: data.transaction,
             }),
         });
@@ -185,4 +213,4 @@ const fulfilTransfer = async () => {
     return data;
 };
 
-module.exports = {processTransaction, fulfilTransfer};
+module.exports = {processTransaction, transfer};

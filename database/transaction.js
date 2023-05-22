@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const TransactionSchema = new Schema({
- userUuid: {
+ account: {
     type: String,
     required: true,
  },
