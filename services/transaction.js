@@ -137,7 +137,7 @@ const transfer = async (request) => {
         ],
     };
     try {
-        let response = await fetch(`${walletUrl}/transactions-construct`, {
+        let response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-construct`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify(details),
@@ -156,11 +156,11 @@ const transfer = async (request) => {
     try {
         //fetch and decrypt password for this wallet account
 
-        const response = await fetch(`${walletUrl}/transactions-sign`, {
+        const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-sign`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
-                passphrase: targetAcc.password ,
+                passphrase: "Fh6rEYRFK99QdAM" ,
                 transaction: data.transaction,
             }),
         });
@@ -175,7 +175,7 @@ const transfer = async (request) => {
         console.log(error);
     }
     try {
-        const response = await fetch(`${walletUrl}/transactions-submit`, {
+        response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-submit`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({ transaction: data.transaction }),
@@ -191,8 +191,6 @@ const transfer = async (request) => {
     } catch (error) {
         console.log(error);
     }
-
-    response.json(resp);
     return data;
 };
 
