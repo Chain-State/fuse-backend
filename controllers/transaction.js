@@ -1,5 +1,5 @@
 const { CLIENT_ERROR, REQUIRED_INPUT, SERVER_ERROR, RESPONSE_OK } = require('../constants/api-strings');
-const {processTransaction} = require('../services/transaction');
+const {processTransaction, transfer} = require('../services/transaction');
 
 const buy = async (request, response) => {
     const {userUuid, assetType, tokenQuantity, paymentAmount} = request.body;
@@ -29,5 +29,12 @@ const buy = async (request, response) => {
         }
     }
 
-    module.exports = { buy }
+
+    const transferAssets = async (request, response) => {
+       //TODO: This should only be called from an MPESA service...validate white-listed IP
+       const result = await transfer(request);
+       return response.json(result);
+    }
+
+    module.exports = { buy, transferAssets }
 

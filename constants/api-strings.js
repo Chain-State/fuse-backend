@@ -11,6 +11,7 @@ const WALLET_NAME_PREFIX = 'FP_';
 const REGISTER = '/register';
 const TRANSACT = '/transact';
 const PURCHASE = `${TRANSACT}/buy`;
+const TRANSFER = '/transfer';
 
 //response codes
 const RESPONSE_OK = 200;
@@ -48,4 +49,5 @@ module.exports = {
     STR_BASE64,
     STR_UTF8,
     PURCHASE,
+    TRANSFER,
 };

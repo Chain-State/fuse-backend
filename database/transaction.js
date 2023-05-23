@@ -17,6 +17,10 @@ const TransactionSchema = new Schema({
  paymentAmount: {
     type: String, 
     required: true
+ },
+ paymentConfirmation: {
+   type: Object,
+   default: {},
  }
 });
 

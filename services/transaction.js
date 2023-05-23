@@ -3,8 +3,8 @@ const url = require('url');
 const account = require('../database/account');
 const transaction = require('../database/transaction');
 
-const callbackString = 'https://webhook.site/821f791e-482e-4d22-82a6-740187179fd9';
-const MPESA_AUTH_TOKEN = 'DZtjazjxgVZ2A5vuJbTgcKFCBJFX';
+const callbackString = 'https://9516-185-92-25-61.ngrok-free.app/api/v1';
+const MPESA_AUTH_TOKEN = 'lNZibfufGGE8hIrgZ6QDVgJXPOaB';
 const CW_SERVER = 'http://127.0.0.1:8090/v2/wallets/';
 const PaymentRequest = {
     BusinessShortCode: 174379,
@@ -31,6 +31,7 @@ const processTransaction = async (transactionDetails) => {
     //get this user account ready for transaction
     try {
         targetAcc = await account.findOne({ uuid: userUuid }).exec();
+        console.log(`Target Account: ${targetAcc}`);
     } catch (error) {
         console.log(`Error getting user ccount for tx`);
     }
@@ -45,20 +46,20 @@ const processTransaction = async (transactionDetails) => {
             paymentAmount: paymentAmount,
         });
 
-        PaymentRequest.CallBackURL = callbackString + "?save_id=" + added._id + "?account=" + targetAcc.wallet.walletName;
+        PaymentRequest.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
+        console.log(PaymentRequest.CallBackURL);
         // const txBody = {
         //     ...transactionDetails,
         //     paymentRequest: PaymentRequest,
         // };
         const paymentRequestData = await requestPayment(headers, PaymentRequest);
         if (paymentRequestData) {
-            //save this payment response
-            response.json(paymentRequestData);
+            return paymentRequestData;
         } else {
             throw new Error('Some error occurred in payment processing...')
         }
     } catch (error) {
-        console.log(`Transaction failed: ${error}`);
+        console.log(error);
     }
 
 }
@@ -74,19 +75,18 @@ const requestPayment = async (headers, paymentRequest) => {
                 body: JSON.stringify(paymentRequest),
             }
         );
+
+        const data = await payRequestResponse.json();
         if (payRequestResponse.ok) {
-            const data = await payRequestResponse.json();
-            console.log(`From request: ${JSON.stringify(data)}`);
             return data;
         } else {
-            const data = await payRequestResponse.json();
             console.log(`Error: ${payRequestResponse.status}`);
             throw new Error(
                 `Payment request failed. ${JSON.stringify(data)}.`
             );
         }
     } catch (error) {
-        console.log(`${error}`);
+        console.log(error);
     }
 };
 
@@ -96,32 +96,18 @@ const requestPayment = async (headers, paymentRequest) => {
  * @param {*} transactionId 
  * @returns 
  */
-const transfer = async () => {
+const transfer = async (request) => {
     const transactionId = url.parse(request.url, true).query.save_id;
     const walletName = url.parse(request.url, true).query.account;
     let paymentConfirmation = request.body;
-    paymentConfirmation = {
-        transactionId: transactionId,
-        ...paymentConfirmation,
-    };
-    //save this response 
-
-    console.log(`transactionId=${transactionId}`);
-    //get the wallet for this user
-    // try{
-    //     walletName = await account.findOne({'wallet.name': transactionId}, 'name').exec();
-    // } catch(error) {
-    //     console.log(`Fatal: ${wallet}`);
-    // }
-    if (!walletName) {
-        throw new Error(`Could not find the wallet with id: ${walletName}`)
-    }
+    const result = await transaction.findByIdAndUpdate(transactionId, {paymentConfirmation: paymentConfirmation}, {new: true});
+    console.log(`result=${result}`);
     const walletUrl = CW_SERVER + walletName;
     let assetData;
     let data = null;
     try {
         //check if a transaction matching the body details is saved in the database
-        assetData = await transaction.findOne({ account: transactionId });
+        assetData = await transaction.findOne({ _id: transactionId }).exec();
         if (!assetData) {
             throw new Error(`Transaction with id ${transactionId} not found`);
         }
