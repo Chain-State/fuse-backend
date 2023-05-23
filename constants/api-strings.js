@@ -8,8 +8,9 @@ const WALLET_NAME_PREFIX = 'FP_';
 
 
 //app routes 
-const REGISTER = '/register'
-
+const REGISTER = '/register';
+const TRANSACT = '/transact';
+const PURCHASE = `${TRANSACT}/buy`;
 
 //response codes
 const RESPONSE_OK = 200;
@@ -46,4 +47,5 @@ module.exports = {
     CIPHER_ALGORITHM,
     STR_BASE64,
     STR_UTF8,
+    PURCHASE,
 };
