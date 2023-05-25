@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const {API_V1} = require('./constants/api-strings');
 const v1Router = require('./v1/routes/routes');
-const connectDB = require('./db-connection');
+const connectDB = require('./utils/db-connection');
 
 connectDB();
 const app = express();
