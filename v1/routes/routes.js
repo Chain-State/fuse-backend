@@ -1,12 +1,13 @@
 
 const express = require('express');
-const {INDEX} = require('../../constants/APIStrings')
+const {INDEX, REGISTER} = require('../../constants/api-strings')
+const {register} = require('../../controllers/account-controller');
 
 const v1Router = express.Router();
 
-v1Router.get(INDEX, (req, res) => {
-    res.send('Setup works!');
-});
+
+v1Router.post(REGISTER,register);
+
 
 module.exports = v1Router;
 
