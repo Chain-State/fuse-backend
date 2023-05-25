@@ -3,8 +3,8 @@ const url = require('url');
 const account = require('../database/account');
 const transaction = require('../database/transaction');
 
-const callbackString = 'https://9516-185-92-25-61.ngrok-free.app/api/v1';
-const MPESA_AUTH_TOKEN = 'lNZibfufGGE8hIrgZ6QDVgJXPOaB';
+const callbackString = 'https://04e4-185-92-25-81.ngrok-free.app/api/v1';
+const MPESA_AUTH_TOKEN = 'a58GfX2aGjV6OYH6FWT1c252Dhwx';
 const CW_SERVER = 'http://127.0.0.1:8090/v2/wallets/';
 const PaymentRequest = {
     BusinessShortCode: 174379,
@@ -31,7 +31,7 @@ const processTransaction = async (transactionDetails) => {
     //get this user account ready for transaction
     try {
         targetAcc = await account.findOne({ uuid: userUuid }).exec();
-        console.log(`Target Account: ${targetAcc}`);
+        console.log(` Buyer Account: ${targetAcc}`);
     } catch (error) {
         console.log(`Error getting user ccount for tx`);
     }
@@ -101,7 +101,7 @@ const transfer = async (request) => {
     const walletName = url.parse(request.url, true).query.account;
     let paymentConfirmation = request.body;
     const result = await transaction.findByIdAndUpdate(transactionId, {paymentConfirmation: paymentConfirmation}, {new: true});
-    console.log(`result=${result}`);
+    console.log(`transaction saved was: ${result}`);
     const walletUrl = CW_SERVER + walletName;
     let assetData;
     let data = null;
@@ -118,7 +118,7 @@ const transfer = async (request) => {
     let response = await fetch(`${walletUrl}/addresses`);
     if (response.ok) {
         data = await response.json();
-        console.log(`wallet addresses: ${data}`);
+        console.log(`wallet addresses: ${JSON.stringify(data)}`);
     }
     else {
         throw new Error(`Error fetching address`)
