@@ -2,7 +2,6 @@
 const API_V1 = '/api/v1';
 
 //Cardano-wallet constants
-const WALLET_SERVER = 'http://127.0.0.1:8090/v2';
 const SEED_SIZE = 24;
 const WALLET_NAME_PREFIX = 'FP_';
 
@@ -33,7 +32,6 @@ const STR_UTF8 = 'utf8';
 
 module.exports = {
     API_V1,
-    WALLET_SERVER,
     WALLET_NAME_PREFIX,
     SEED_SIZE,
     REGISTER,
