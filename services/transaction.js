@@ -2,24 +2,23 @@ const fetch = require('node-fetch-commonjs');
 const url = require('url');
 const account = require('../database/account');
 const transaction = require('../database/transaction');
-const PaymentAPI = require('../utils/payment-api');
+const {PaymentApi, accessToken } = require('../utils/payment-api');
 
 const callbackString = 'https://04e4-185-92-25-81.ngrok-free.app/api/v1';
-const MPESA_AUTH_TOKEN = 'a58GfX2aGjV6OYH6FWT1c252Dhwx';
 
-const PaymentRequest = {
-    BusinessShortCode: 174379,
-    Password: "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjMwNDEwMTQxMTI3",
-    Timestamp: "20230410141127",
-    TransactionType: "CustomerPayBillOnline",
-    Amount: 1,
-    PartyA: 254726367035,
-    PartyB: 174379,
-    PhoneNumber: 254726367035,
-    CallBackURL: '',
-    AccountReference: "AKJD92F",
-    TransactionDesc: "B-600ADA"
-}
+// const PaymentRequest = {
+//     BusinessShortCode: 174379,
+//     Password: "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjMwNDEwMTQxMTI3",
+//     Timestamp: "20230410141127",
+//     TransactionType: "CustomerPayBillOnline",
+//     Amount: 1,
+//     PartyA: 254726367035,
+//     PartyB: 174379,
+//     PhoneNumber: 254726367035,
+//     CallBackURL: '',
+//     AccountReference: "AKJD92F",
+//     TransactionDesc: "B-600ADA"
+// }
 
 let targetAcc = null;
 
@@ -27,10 +26,10 @@ let targetAcc = null;
 const processTransaction = async (transactionDetails) => {
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
-    headers.append("Authorization", "Bearer " + MPESA_AUTH_TOKEN);
+    headers.append("Authorization", "Bearer " + await accessToken());
     const { userUuid, assetType, tokenQuantity, paymentAmount } = transactionDetails;
 
-    let paymentApi = new PaymentAPI('0726367035', '2');
+    let paymentApi = new PaymentApi('254726367035', '2');
     //get this user account ready for transaction
     try {
         targetAcc = await account.findOne({ uuid: userUuid }).exec();
@@ -50,12 +49,12 @@ const processTransaction = async (transactionDetails) => {
         });
 
         paymentApi.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
-        console.log(PaymentRequest.CallBackURL);
+        console.log(paymentApi.CallBackURL);
         // const txBody = {
         //     ...transactionDetails,
         //     paymentRequest: PaymentRequest,
         // };
-        const paymentRequestData = await requestPayment(headers, PaymentRequest);
+        const paymentRequestData = await requestPayment(headers, paymentApi);
         if (paymentRequestData) {
             return paymentRequestData;
         } else {
