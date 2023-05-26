@@ -6,20 +6,6 @@ const {PaymentApi, accessToken } = require('../utils/payment-api');
 
 const callbackString = 'https://04e4-185-92-25-81.ngrok-free.app/api/v1';
 
-// const PaymentRequest = {
-//     BusinessShortCode: 174379,
-//     Password: "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjMwNDEwMTQxMTI3",
-//     Timestamp: "20230410141127",
-//     TransactionType: "CustomerPayBillOnline",
-//     Amount: 1,
-//     PartyA: 254726367035,
-//     PartyB: 174379,
-//     PhoneNumber: 254726367035,
-//     CallBackURL: '',
-//     AccountReference: "AKJD92F",
-//     TransactionDesc: "B-600ADA"
-// }
-
 let targetAcc = null;
 
 
