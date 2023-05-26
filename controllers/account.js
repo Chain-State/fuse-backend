@@ -1,4 +1,4 @@
-const {save} = require('../services/account-service');
+const {save} = require('../services/account');
 const {CLIENT_ERROR, REQUIRED_INPUT, RESPONSE_CREATED, SERVER_ERROR} = require('../constants/api-strings');
 const register = async (request, response) => {
 
