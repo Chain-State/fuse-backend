@@ -148,7 +148,7 @@ const transfer = async (request) => {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
-                passphrase: "Fh6rEYRFK99QdAM" ,
+                passphrase: process.env.MW_KEY,
                 transaction: data.transaction,
             }),
         });
