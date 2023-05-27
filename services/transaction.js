@@ -15,7 +15,6 @@ const processTransaction = async (transactionDetails) => {
     headers.append("Authorization", "Bearer " + await accessToken());
     const { userUuid, assetType, tokenQuantity, paymentAmount } = transactionDetails;
 
-    let paymentApi = new PaymentApi('254726367035', '2');
     //get this user account ready for transaction
     try {
         targetAcc = await account.findOne({ uuid: userUuid }).exec();
@@ -23,6 +22,7 @@ const processTransaction = async (transactionDetails) => {
     } catch (error) {
         console.log(`Error getting user ccount for tx`);
     }
+    let paymentApi = new PaymentApi(targetAcc.phoneNumber, transactionDetails.paymentAmount);
 
     //save the transaction
     let added = null;
