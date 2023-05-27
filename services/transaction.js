@@ -4,7 +4,7 @@ const account = require('../database/account');
 const transaction = require('../database/transaction');
 const {PaymentApi, accessToken } = require('../utils/payment-api');
 
-const callbackString = 'https://04e4-185-92-25-81.ngrok-free.app/api/v1';
+const callbackString = 'https://fc4a-104-154-236-52.ngrok.io/api/v1';
 
 let targetAcc = null;
 
