@@ -4,13 +4,12 @@ const {cipher} = require('../utils/secure-storage');
 const { WalletServer, Seed } = require('cardano-wallet-js');
 const {
     ERR_SAVE_FAIL,
-    WALLET_SERVER,
     SEED_SIZE,
     WALLET_NAME_PREFIX,
     STR_UTF8,
 } = require('../constants/api-strings');
 
-const walletServer = WalletServer.init(WALLET_SERVER);
+const walletServer = WalletServer.init(process.env.WALLET_SERVER);
 
 const createWallet = (userAccountUuid, password) => {
     const mnemonicPhrase = Seed.generateRecoveryPhrase(SEED_SIZE);

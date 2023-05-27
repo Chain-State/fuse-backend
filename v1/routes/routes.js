@@ -1,7 +1,7 @@
 
 const express = require('express');
 const {REGISTER, PURCHASE, TRANSFER} = require('../../constants/api-strings')
-const {register} = require('../../controllers/account-controller');
+const {register} = require('../../controllers/account');
 const { buy, transferAssets } = require('../../controllers/transaction');
 
 const v1Router = express.Router();
