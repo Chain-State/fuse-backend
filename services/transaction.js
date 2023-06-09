@@ -1,5 +1,6 @@
 const fetch = require('node-fetch-commonjs');
 const url = require('url');
+const { TRANSACTION_TYPE } = require('../constants/api-strings');
 const account = require('../database/account');
 const transaction = require('../database/transaction');
 const {PaymentApi, accessToken } = require('../utils/payment-api');
@@ -181,5 +182,120 @@ const transfer = async (request) => {
     }
     return data;
 };
+
+const processPayment =  async (paymentDetails) => {
+
+    // This transfers the asset from user wallet to 
+    // TODO: Breakdown this to do the reverse of transfer
+    const result = await transfer(request);
+    const { quantity } = assetData;
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    const details = {
+        payments: [
+            {
+                address: address,
+                amount: { quantity: parseFloat(quantity), unit: "lovelace" },
+            },
+        ],
+    };
+    try {
+        let response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-construct`, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(details),
+        });
+        if (response.ok) {
+            data = await response.json();
+            console.log(`Unsigned tx: ${data.transaction}`);
+        } else {
+            throw new Error(
+                `Transaction construction error: ${JSON.stringify(await response.json())}`
+            );
+        }
+    } catch (error) {
+        console.log(error);
+    }
+    try {
+        //fetch and decrypt password for this wallet account
+
+        const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-sign`, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify({
+                passphrase: process.env.MW_KEY,
+                transaction: data.transaction,
+            }),
+        });
+        if (response.ok) {
+            data = await response.json();
+        } else {
+            throw new Error(
+                `Transaction sign error: ${JSON.stringify(response.status)}`
+            );
+        }
+    } catch (error) {
+        console.log(error);
+    }
+    try {
+        response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-submit`, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify({ transaction: data.transaction }),
+        });
+        if (response.ok) {
+            data = await response.json();
+            console.log(`Success! Transaction id: ${data}`);
+        } else {
+            throw new Error(
+                `Transaction submit error: ${JSON.stringify(response.status)}`
+            );
+        }
+    } catch (error) {
+        console.log(error);
+    }
+
+    if (result.ok){
+
+        // This is the beginning of the mpesa transaction
+        const headersMpesa = new Headers();
+        headersMpesa.append("Content-Type", "application/json");
+        headersMpesa.append("Authorization", "Bearer " + await accessToken());
+        const { userUuid, assetType, tokenQuantity, paymentAmount, exchangeRate, payee } = paymentDetails;
+
+        let paymentApi = new PaymentApi(paymentDetails.payee, paymentDetails.paymentAmount);
+
+        //save the transaction
+        let added = null;
+        try {
+            added = await transaction.create({
+                account: userUuid,
+                assetType: assetType,
+                quantity: tokenQuantity,
+                paymentAmount: paymentAmount,
+                transactionType: TRANSACTION_CATEGORY.PAYMENT,
+            });
+
+            // paymentApi.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
+            // console.log(paymentApi.CallBackURL);
+            // const txBody = {
+            //     ...transactionDetails,
+            //     paymentRequest: PaymentRequest,
+            // };
+            const paymentRequestData = await requestPayment(headersMpesa, paymentApi);
+            if (paymentRequestData) {
+                return paymentRequestData;
+            } else {
+                throw new Error('Some error occurred in payment processing...')
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    
+}
+
+
 
 module.exports = { processTransaction, transfer };

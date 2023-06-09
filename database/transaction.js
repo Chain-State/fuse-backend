@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+export const TRANSACTION_CATEGORY = Object.freeze({
+   BUY:      { name: "buy"},
+   PAYMENT:  { name: "payment"},
+   SWAP:     { name: "swap"}
+ });
+
 const TransactionSchema = new Schema({
  account: {
     type: String,
@@ -20,6 +26,10 @@ const TransactionSchema = new Schema({
  },
  paymentConfirmation: {
    type: Object,
+   default: {},
+ },
+ transactionType: {
+   type: TRANSACTION_CATEGORY,
    default: {},
  }
 });
