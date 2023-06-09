@@ -65,5 +65,5 @@ const buy = async (request, response) => {
         
     // }
 
-    module.exports = { buy, transferAssets, makePayment }
+    module.exports = { buy, transferAssets }
 

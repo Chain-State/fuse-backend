@@ -185,16 +185,26 @@ const transfer = async (request) => {
 
 const processPayment =  async (paymentDetails) => {
 
-    // This transfers the asset from user wallet to 
+    const { userUuid, assetType, tokenQuantity, paymentAmount, exchangeRate, payee } = paymentDetails;
+
+    //get this user account ready for transaction
+    try {
+        payerAcc = await account.findOne({ uuid: userUuid }).exec();
+        console.log(` Payer Account: ${payerAcc}`);
+    } catch (error) {
+        console.log(`Error getting user ccount for tx`);
+    }
+
+    // This transfers the asset from user wallet to main wallet
     // TODO: Breakdown this to do the reverse of transfer
     const result = await transfer(request);
-    const { quantity } = assetData;
+    const { quantity } = tokenQuantity;
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const details = {
         payments: [
             {
-                address: address,
+                address: address, //TODO: Get the address of the payer
                 amount: { quantity: parseFloat(quantity), unit: "lovelace" },
             },
         ],
@@ -261,7 +271,6 @@ const processPayment =  async (paymentDetails) => {
         const headersMpesa = new Headers();
         headersMpesa.append("Content-Type", "application/json");
         headersMpesa.append("Authorization", "Bearer " + await accessToken());
-        const { userUuid, assetType, tokenQuantity, paymentAmount, exchangeRate, payee } = paymentDetails;
 
         let paymentApi = new PaymentApi(paymentDetails.payee, paymentDetails.paymentAmount);
 
