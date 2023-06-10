@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const connectDB = async () => {
   try {
+    const encodedURI = encodeURIComponent(process.env.DATABASE_URI)
     await mongoose.connect(process.env.DATABASE_URI, {
       useUnifiedTopology: true,
       useNewUrlParser: true,

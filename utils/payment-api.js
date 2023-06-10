@@ -30,6 +30,34 @@ const PaymentApi = class {
 
 }
 
+const B2CPaymentApi = class {
+
+    static tokenExpiry = 0;
+    static apiToken = '';
+    BusinessShortCode = BUSINESS_SHORT_CODE;
+    TransactionType = TRANSACTION_TYPE;
+    PartyB = "";
+    Password = '';
+    Timestamp = '';
+    Amount = 0;
+    PartyA = BUSINESS_SHORT_CODE;
+    PhoneNumber = "";
+    CallBackURL = '';
+    AccountReference = '';
+    TransactionDesc = TRANSACTION_DESCRIPTION;
+
+    constructor(payee, amount) {
+        const txTimeStamp = timeStampGenerate();
+        this.PartyB = payee;
+        this.PhoneNumber = payee;
+        this.Amount = amount;
+        this.Timestamp = txTimeStamp;
+        this.Password = Buffer.from(BUSINESS_SHORT_CODE + API_KEYPASS + txTimeStamp).toString(STR_BASE64);
+        this.AccountReference = Buffer.from(txTimeStamp).toString(STR_BASE64).slice(5);
+    }
+
+}
+
 const timeStampGenerate = () => {
     let date = new Date();;
     return date.getFullYear() + ("0" + (date.getMonth() + 0)).slice(-2) + ("0" + (date.getDate() + 0)).slice(-2) + ("0" + (date.getHours() + 0)).slice(-2) + date.getMinutes() + ("0" + (date.getSeconds() + 0)).slice(-2);;
@@ -70,4 +98,4 @@ const accessToken = async () => {
 
 
 
-module.exports = { PaymentApi: PaymentApi, accessToken };
+module.exports = { PaymentApi: PaymentApi, accessToken , B2CPaymentApi: B2CPaymentApi};

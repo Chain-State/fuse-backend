@@ -79,6 +79,32 @@ const requestPayment = async (headers, paymentRequest) => {
     }
 };
 
+//MPESA B2C payment 
+const requestB2CPayment = async (headers, paymentRequest) => {
+    try {
+        const payRequestResponse = await fetch(
+            'https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest', 
+            {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(paymentRequest),
+            }
+        );
+
+        const data = await payRequestResponse.json();
+        if (payRequestResponse.ok) {
+            return data;
+        } else {
+            console.log(`Error: ${payRequestResponse.status}`);
+            throw new Error(
+                `Payment request failed. ${JSON.stringify(data)}.`
+            );
+        }
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 
 /**
  * Complete transfer of asset after user payment confirmed.
@@ -186,6 +212,7 @@ const transfer = async (request) => {
 const processPayment =  async (paymentDetails) => {
 
     const { userUuid, assetType, tokenQuantity, paymentAmount, exchangeRate, payee } = paymentDetails;
+    payerAcc = null
 
     //get this user account ready for transaction
     try {
@@ -197,20 +224,36 @@ const processPayment =  async (paymentDetails) => {
 
     // This transfers the asset from user wallet to main wallet
     // TODO: Breakdown this to do the reverse of transfer
-    const result = await transfer(request);
+    // const result = await transfer(request);
     const { quantity } = tokenQuantity;
+    const payerAccWallet = payerAcc.wallet
+
+    const walletUrl = `${process.env.WALLET_SERVER}/wallets/${payerAccWallet.name}`;
+
+    data = null
+    //get payer address from wallet
+    let response = await fetch(`${walletUrl}/addresses`);
+    if (response.ok) {
+        data = await response.json();
+        console.log(`wallet addresses: ${JSON.stringify(data)}`);
+    }
+    else {
+        throw new Error(`Error fetching address`)
+    }
+    const payerAddress = data[0].id;
+
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const details = {
         payments: [
             {
-                address: address, //TODO: Get the address of the payer
+                address: payerAddress,
                 amount: { quantity: parseFloat(quantity), unit: "lovelace" },
             },
         ],
     };
     try {
-        let response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-construct`, {
+        let response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-construct`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify(details),
@@ -229,11 +272,11 @@ const processPayment =  async (paymentDetails) => {
     try {
         //fetch and decrypt password for this wallet account
 
-        const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-sign`, {
+        const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-sign`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
-                passphrase: process.env.MW_KEY,
+                passphrase: process.env.MW_KEY, // TODO: Get the wallet key for the payer
                 transaction: data.transaction,
             }),
         });
@@ -248,7 +291,7 @@ const processPayment =  async (paymentDetails) => {
         console.log(error);
     }
     try {
-        response = await fetch(`http://127.0.0.1:8090/v2/wallets/${process.env.MASTER_WALLET}/transactions-submit`, {
+        response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-submit`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({ transaction: data.transaction }),
@@ -272,7 +315,7 @@ const processPayment =  async (paymentDetails) => {
         headersMpesa.append("Content-Type", "application/json");
         headersMpesa.append("Authorization", "Bearer " + await accessToken());
 
-        let paymentApi = new PaymentApi(paymentDetails.payee, paymentDetails.paymentAmount);
+        let paymentApi = new B2CPaymentApi(paymentDetails.payee, paymentDetails.paymentAmount);
 
         //save the transaction
         let added = null;
@@ -291,7 +334,7 @@ const processPayment =  async (paymentDetails) => {
             //     ...transactionDetails,
             //     paymentRequest: PaymentRequest,
             // };
-            const paymentRequestData = await requestPayment(headersMpesa, paymentApi);
+            const paymentRequestData = await requestB2CPayment(headersMpesa, paymentApi);
             if (paymentRequestData) {
                 return paymentRequestData;
             } else {
