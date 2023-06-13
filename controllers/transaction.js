@@ -1,5 +1,23 @@
-const { CLIENT_ERROR, REQUIRED_INPUT, SERVER_ERROR, RESPONSE_OK } = require('../constants/api-strings');
-const {processTransaction, transfer} = require('../services/transaction');
+const { CLIENT_ERROR, REQUIRED_INPUT, SERVER_ERROR, RESPONSE_OK, ERR_ACCESS_TOKEN_FETCH, ERR_FETCH_USER_WALLET } = require('../constants/api-strings');
+const {processTransaction, transfer, walletAssets} = require('../services/transaction');
+
+const getAssets = async (request, response) => {
+
+    const url = request.url;
+    if(!url) {
+        throw new Error(`Failed getting assets ${REQUIRED_INPUT}`);
+    }
+    const uuid = url.substring(url.indexOf('/', 1) + 1);
+    //query databasefor this user and get the wallet id.
+    const assetsData = await walletAssets(uuid);
+    if(!assetsData){
+        response.status(SERVER_ERROR).json({
+            error: ERR_FETCH_USER_WALLET, 
+        });
+    }
+    response.json(assetsData);
+    console.log(assetsData);
+}
 
 const buy = async (request, response) => {
     const {userUuid, assetType, tokenQuantity, paymentAmount} = request.body;
@@ -36,5 +54,5 @@ const buy = async (request, response) => {
        return response.json(result);
     }
 
-    module.exports = { buy, transferAssets }
+    module.exports = { getAssets, buy, transferAssets }
 
