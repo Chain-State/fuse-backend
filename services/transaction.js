@@ -2,8 +2,11 @@ const fetch = require('node-fetch-commonjs');
 const url = require('url');
 const { TRANSACTION_TYPE } = require('../constants/api-strings');
 const account = require('../database/account');
+const keyManage = require('../database/key-manage');
 const transaction = require('../database/transaction');
-const {PaymentApi, accessToken } = require('../utils/payment-api');
+const {PaymentApi, B2CPaymentApi, accessToken } = require('../utils/payment-api');
+const {decipher} = require('../utils/secure-storage');
+
 
 const callbackString = process.env.MPESA_API_CALLBACK;
 
@@ -271,12 +274,23 @@ const processPayment =  async (paymentDetails) => {
     }
     try {
         //fetch and decrypt password for this wallet account
+        // with uuid for user get keymanage entry with that and get the encrypted passphrase
+        payerKey = null
+        payerDecryptedWalletKey = null
+        try {
+            payerKey = await keyManage.findOne({ owner: userUuid }).exec();
+            console.log(` Payer Account: ${payerAcc}`);
+        } catch (error) {
+            console.log(`Error getting user key for tx`);
+        }
+        payerWalletEncryptedKey = payerKey.seed
+        payerDecryptedWalletKey = decipher(payerWalletEncryptedKey)
 
         const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-sign`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
-                passphrase: process.env.MW_KEY, // TODO: Get the wallet key for the payer
+                passphrase: payerDecryptedWalletKey,
                 transaction: data.transaction,
             }),
         });
@@ -299,6 +313,43 @@ const processPayment =  async (paymentDetails) => {
         if (response.ok) {
             data = await response.json();
             console.log(`Success! Transaction id: ${data}`);
+
+            // This is the beginning of the mpesa transaction
+            const headersMpesa = new Headers();
+            headersMpesa.append("Content-Type", "application/json");
+            headersMpesa.append("Authorization", "Bearer " + await accessToken());
+
+            let paymentApi = new B2CPaymentApi(paymentDetails.payee, paymentDetails.paymentAmount);
+
+            // const paymentAmount = tokenQuantity * exchangeRate
+
+            //save the transaction
+            let added = null;
+            try {
+                added = await transaction.create({
+                    account: userUuid,
+                    assetType: assetType,
+                    quantity: tokenQuantity,
+                    paymentAmount: paymentAmount,
+                    transactionType: TRANSACTION_CATEGORY.PAYMENT,
+                });
+
+                // paymentApi.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
+                // console.log(paymentApi.CallBackURL);
+                // const txBody = {
+                //     ...transactionDetails,
+                //     paymentRequest: PaymentRequest,
+                // };
+                const paymentRequestData = await requestB2CPayment(headersMpesa, paymentApi);
+                if (paymentRequestData) {
+                    return paymentRequestData;
+                } else {
+                    throw new Error('Some error occurred in payment processing...')
+                }
+            } catch (error) {
+                console.log(error);
+            }
+
         } else {
             throw new Error(
                 `Transaction submit error: ${JSON.stringify(response.status)}`
@@ -310,44 +361,50 @@ const processPayment =  async (paymentDetails) => {
 
     if (result.ok){
 
-        // This is the beginning of the mpesa transaction
-        const headersMpesa = new Headers();
-        headersMpesa.append("Content-Type", "application/json");
-        headersMpesa.append("Authorization", "Bearer " + await accessToken());
-
-        let paymentApi = new B2CPaymentApi(paymentDetails.payee, paymentDetails.paymentAmount);
-
-        //save the transaction
-        let added = null;
-        try {
-            added = await transaction.create({
-                account: userUuid,
-                assetType: assetType,
-                quantity: tokenQuantity,
-                paymentAmount: paymentAmount,
-                transactionType: TRANSACTION_CATEGORY.PAYMENT,
-            });
-
-            // paymentApi.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
-            // console.log(paymentApi.CallBackURL);
-            // const txBody = {
-            //     ...transactionDetails,
-            //     paymentRequest: PaymentRequest,
-            // };
-            const paymentRequestData = await requestB2CPayment(headersMpesa, paymentApi);
-            if (paymentRequestData) {
-                return paymentRequestData;
-            } else {
-                throw new Error('Some error occurred in payment processing...')
-            }
-        } catch (error) {
-            console.log(error);
-        }
+        
     }
 
     
 }
 
 
+const testB2CPayment =  async () => {
+    // This is the beginning of the mpesa transaction
+    const headersMpesa = new fetch.Headers();
+    headersMpesa.append("Content-Type", "application/json");
+    headersMpesa.append("Authorization", "Bearer " + await accessToken());
+
+    let paymentApi = new B2CPaymentApi(254702262663, 10);
+
+    // const paymentAmount = tokenQuantity * exchangeRate
+
+    //save the transaction
+    let added = null;
+    try {
+        // added = await transaction.create({
+        //     account: userUuid,
+        //     assetType: assetType,
+        //     quantity: tokenQuantity,
+        //     paymentAmount: paymentAmount,
+        //     transactionType: TRANSACTION_CATEGORY.PAYMENT,
+        // });
+
+        // paymentApi.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
+        // console.log(paymentApi.CallBackURL);
+        // const txBody = {
+        //     ...transactionDetails,
+        //     paymentRequest: PaymentRequest,
+        // };
+        const paymentRequestData = await requestB2CPayment(headersMpesa, paymentApi);
+        if (paymentRequestData) {
+            console.log(paymentRequestData)
+            return paymentRequestData;
+        } else {
+            throw new Error('Some error occurred in payment processing...')
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 module.exports = { processTransaction, transfer };

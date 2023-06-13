@@ -40,9 +40,18 @@ const ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?gran
 const BUSINESS_SHORT_CODE = 174379;
 const API_KEYPASS = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
 const TRANSACTION_TYPE = 'CustomerPayBillOnline';
-const KIBANDA_APP_USERNAME = 'DjnHPxsnQF91LV77bWzWcQJWBiporMrB';
-const KIBANDA_APP_PASSWORD = 'uI9UzgDvSMlmdkD9';
+const KIBANDA_APP_USERNAME = 'AvAx6uMiOmHQywy9DreAotlCLFQwzlZS';
+const KIBANDA_APP_PASSWORD = 'To1WS9gbEc4JhOeV';
 const TRANSACTION_DESCRIPTION = 'Fuse Ltd';
+//B2C
+const INITIATOR_NAME = 'Fuse App';
+const B2C_COMMAND_ID = 'BusinessPayment';
+const B2C_PAYMENT_REMARKS = 'Fuse Payment';
+const B2C_PAYMENT_OCCASION = 'Payment of something'
+const B2C_SANDBOX_APP_PASSWORD = 'WDCks&c3B-?3_hB'
+const B2C_TimeOutURl_SANDBOX = "https://mydomain.com/b2c/queue"
+const B2C_ResultURl_SANDBOX = "https://mydomain.com/b2c/queue"
+
 
 module.exports = {
     API_V1,
@@ -71,5 +80,13 @@ module.exports = {
     TRANSACTION_TYPE,
     KIBANDA_APP_USERNAME,
     KIBANDA_APP_PASSWORD,
-    TRANSACTION_DESCRIPTION
+    TRANSACTION_DESCRIPTION,
+    B2C_COMMAND_ID,
+    INITIATOR_NAME,
+    B2C_PAYMENT_REMARKS,
+    B2C_PAYMENT_OCCASION,
+    B2C_SANDBOX_APP_PASSWORD,
+    B2C_TimeOutURl_SANDBOX,
+    B2C_ResultURl_SANDBOX
+
 };
