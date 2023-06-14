@@ -2,7 +2,7 @@ const { Buffer } = require('node:buffer');
 const fetch = require('node-fetch-commonjs');
 const fs = require('fs');
 const crypto = require('crypto');
-const { BUSINESS_SHORT_CODE, TRANSACTION_TYPE, ACCESS_TOKEN_URL, KIBANDA_APP_USERNAME, KIBANDA_APP_PASSWORD, CONTENT_TYPE, AUTHORIZATION, ERR_ACCESS_TOKEN_FETCH, API_KEYPASS, STR_BASE64, STR_UTF8, TRANSACTION_DESCRIPTION, INITIATOR_NAME, B2C_COMMAND_ID, B2C_PAYMENT_REMARKS, B2C_PAYMENT_OCCASION, B2C_SANDBOX_APP_PASSWORD, B2C_TimeOutURl_SANDBOX, B2C_ResultURl_SANDBOX } = require('../constants/api-strings');
+const { BUSINESS_SHORT_CODE, TRANSACTION_TYPE, ACCESS_TOKEN_URL, KIBANDA_APP_USERNAME, KIBANDA_APP_PASSWORD, CONTENT_TYPE, AUTHORIZATION, ERR_ACCESS_TOKEN_FETCH, API_KEYPASS, STR_BASE64, STR_UTF8, TRANSACTION_DESCRIPTION, KIBANDA_CALLBACK_URL, INITIATOR_NAME, B2C_COMMAND_ID, B2C_PAYMENT_REMARKS, B2C_PAYMENT_OCCASION, B2C_SANDBOX_APP_PASSWORD, B2C_TimeOutURl_SANDBOX, B2C_ResultURl_SANDBOX } = require('../constants/api-strings');
 
 const PaymentApi = class {
 
@@ -16,7 +16,7 @@ const PaymentApi = class {
     Amount = 0;
     PartyA = "";
     PhoneNumber = "";
-    CallBackURL = '';
+    CallBackURL = KIBANDA_CALLBACK_URL;
     AccountReference = '';
     TransactionDesc = TRANSACTION_DESCRIPTION;
 
@@ -96,7 +96,7 @@ const accessToken = async () => {
 }
 
 const b2cSecurityCredential = async () => {
-    const unencryptedPassword = B2C_SANDBOX_APP_PASSWORD
+    const unencryptedPassword = process.env.B2C_SANDBOX_PASSWORD
     try {
         const pub_key_cert = fs.readFileSync('../SandboxCertificate.cer', STR_UTF8);
         const pub_key_obj = crypto.createPublicKey(pub_key_cert)
@@ -105,7 +105,7 @@ const b2cSecurityCredential = async () => {
             padding: crypto.constants.RSA_PKCS1_PADDING
         }, Buffer.from(unencryptedPassword, STR_UTF8));
         const encryptedPassString = encryptedPassStr.toString(STR_BASE64);
-        console.log(`security credential: ${encryptedPassString}`);
+        // console.log(`security credential: ${encryptedPassString}`);
         return encryptedPassString
     } catch (err) {
         console.error(err)

@@ -1,5 +1,5 @@
 const { CLIENT_ERROR, REQUIRED_INPUT, SERVER_ERROR, RESPONSE_OK } = require('../constants/api-strings');
-const {processTransaction, transfer, requestPayment} = require('../services/transaction');
+const {processTransaction, transfer, processPayment} = require('../services/transaction');
 
 const buy = async (request, response) => {
     const {userUuid, assetType, tokenQuantity, paymentAmount} = request.body;
@@ -36,34 +36,38 @@ const buy = async (request, response) => {
        return response.json(result);
     }
 
-    // const makePayment = async (request, response) => {
-    //     const {userUuid, assetType, tokenQuantity, paymentAmount} = request.body;
-    //     if(!userUuid || !assetType || !tokenQuantity || !paymentAmount || !exchangeRate || !payee) {
-    //         return response.status(CLIENT_ERROR).json({
-    //             data: {
-    //                 error: REQUIRED_INPUT,
-    //             }
-    //         });
-    //     }
+    const makePayment = async (request, response) => {
+        const {userUuid, assetType, tokenQuantity, paymentAmount, exchangeRate, payee} = request.body;
+        if(!userUuid || !assetType || !tokenQuantity || !paymentAmount || !exchangeRate || !payee) {
+            return response.status(CLIENT_ERROR).json({
+                data: {
+                    error: REQUIRED_INPUT,
+                }
+            });
+        }
 
-    //     try {
-    //         // This is where the transfer of asset from user wallet to main wallet occurs 
-    //         const result = await transfer(request);
-    //         return response.json(result);
+        try {
+            // This is where the transfer of asset from user wallet to main wallet occurs 
 
-    //         // After the response from the cardano wallet, make the mpesa transaction
-    //         const mpesaResponse = await requestPayment()
+            const paymentStatus = await processPayment({userUuid, assetType, tokenQuantity, paymentAmount, exchangeRate, payee})
+            if(paymentStatus){
+                return response.status(RESPONSE_OK).json({
+                    data: {
+                        paymentStatus: paymentStatus,
+                    }
+                })
+            }
 
-    //     } catch(error){
-    //         console.log(`Error ${error}`);
-    //         return response.status(SERVER_ERROR).json({
-    //             data: {
-    //                 error: error,
-    //             }
-    //         })
-    //     }
+        } catch(error){
+            console.log(`Error ${error}`);
+            return response.status(SERVER_ERROR).json({
+                data: {
+                    error: error,
+                }
+            })
+        }
         
-    // }
+    }
 
-    module.exports = { buy, transferAssets }
+    module.exports = { buy, transferAssets, makePayment }
 

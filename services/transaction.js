@@ -14,7 +14,7 @@ let targetAcc = null;
 
 
 const processTransaction = async (transactionDetails) => {
-    const headers = new Headers();
+    const headers = new fetch.Headers();
     headers.append("Content-Type", "application/json");
     headers.append("Authorization", "Bearer " + await accessToken());
     const { userUuid, assetType, tokenQuantity, paymentAmount } = transactionDetails;
@@ -231,7 +231,8 @@ const processPayment =  async (paymentDetails) => {
     const { quantity } = tokenQuantity;
     const payerAccWallet = payerAcc.wallet
 
-    const walletUrl = `${process.env.WALLET_SERVER}/wallets/${payerAccWallet.name}`;
+    const walletUrl = `${process.env.WALLET_SERVER}/wallets/${payerAccWallet.id}`;
+    const masterWalletUrl = `${process.env.WALLET_SERVER}/wallets/${process.env.MASTER_WALLET_NAME}`;
 
     data = null
     //get payer address from wallet
@@ -241,22 +242,34 @@ const processPayment =  async (paymentDetails) => {
         console.log(`wallet addresses: ${JSON.stringify(data)}`);
     }
     else {
-        throw new Error(`Error fetching address`)
+        throw new Error(`Error fetching user address`)
+    }
+
+    masterData = null
+    //get payer address from wallet
+    let maseterResponse = await fetch(`${masterWalletUrl}/addresses`);
+    if (maseterResponse.ok) {
+        masterData = await maseterResponse.json();
+        console.log(`Master wallet addresses: ${JSON.stringify(masterData)}`);
+    }
+    else {
+        throw new Error(`Error fetching master address`)
     }
     const payerAddress = data[0].id;
+    const masterAddress = masterData[0].id;
 
-    const headers = new Headers();
+    const headers = new fetch.Headers();
     headers.append("Content-Type", "application/json");
     const details = {
         payments: [
             {
-                address: payerAddress,
+                address: masterAddress,
                 amount: { quantity: parseFloat(quantity), unit: "lovelace" },
             },
         ],
     };
     try {
-        let response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-construct`, {
+        let response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet.id}/transactions-construct`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify(details),
@@ -286,7 +299,7 @@ const processPayment =  async (paymentDetails) => {
         payerWalletEncryptedKey = payerKey.seed
         payerDecryptedWalletKey = decipher(payerWalletEncryptedKey)
 
-        const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-sign`, {
+        const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet.id}/transactions-sign`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
@@ -305,7 +318,7 @@ const processPayment =  async (paymentDetails) => {
         console.log(error);
     }
     try {
-        response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet}/transactions-submit`, {
+        response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet.id}/transactions-submit`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({ transaction: data.transaction }),
@@ -397,7 +410,6 @@ const testB2CPayment =  async () => {
         // };
         const paymentRequestData = await requestB2CPayment(headersMpesa, paymentApi);
         if (paymentRequestData) {
-            console.log(paymentRequestData)
             return paymentRequestData;
         } else {
             throw new Error('Some error occurred in payment processing...')
@@ -407,4 +419,4 @@ const testB2CPayment =  async () => {
     }
 }
 
-module.exports = { processTransaction, transfer };
+module.exports = { processTransaction, transfer, processPayment };

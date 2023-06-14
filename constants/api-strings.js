@@ -11,6 +11,7 @@ const REGISTER = '/register';
 const TRANSACT = '/transact';
 const PURCHASE = `${TRANSACT}/buy`;
 const TRANSFER = '/transfer';
+const PAYMENT  = '/payment' 
 
 //http headers 
 const CONTENT_TYPE = 'Content-Type';
@@ -40,9 +41,10 @@ const ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?gran
 const BUSINESS_SHORT_CODE = 174379;
 const API_KEYPASS = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
 const TRANSACTION_TYPE = 'CustomerPayBillOnline';
-const KIBANDA_APP_USERNAME = 'AvAx6uMiOmHQywy9DreAotlCLFQwzlZS';
-const KIBANDA_APP_PASSWORD = 'To1WS9gbEc4JhOeV';
+const KIBANDA_APP_USERNAME = 'DjnHPxsnQF91LV77bWzWcQJWBiporMrB';
+const KIBANDA_APP_PASSWORD = 'uI9UzgDvSMlmdkD9';
 const TRANSACTION_DESCRIPTION = 'Fuse Ltd';
+const KIBANDA_CALLBACK_URL = 'https://mydomain.com/path'
 //B2C
 const INITIATOR_NAME = 'Fuse App';
 const B2C_COMMAND_ID = 'BusinessPayment';
@@ -74,12 +76,14 @@ module.exports = {
     STR_UTF8,
     PURCHASE,
     TRANSFER,
+    PAYMENT,
     ACCESS_TOKEN_URL,
     BUSINESS_SHORT_CODE,
     API_KEYPASS,
     TRANSACTION_TYPE,
     KIBANDA_APP_USERNAME,
     KIBANDA_APP_PASSWORD,
+    KIBANDA_CALLBACK_URL,
     TRANSACTION_DESCRIPTION,
     B2C_COMMAND_ID,
     INITIATOR_NAME,
