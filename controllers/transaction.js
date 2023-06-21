@@ -10,6 +10,7 @@ const {
   processTransaction,
   transfer,
   walletAssets,
+  paymentConfirmation,
 } = require("../services/transaction");
 
 const getAssets = async (request, response) => {
@@ -68,4 +69,11 @@ const transferAssets = async (request, response) => {
   return response.json(result);
 };
 
-module.exports = { getAssets, buy, transferAssets };
+const confirmTxComplete = async (request, response) => {
+const {account, requestId} = request.body;
+console.log(`Acc: ${account}, RequestId: ${requestId}`);
+  const result  = await paymentConfirmation({account: account, requestId: requestId});
+  return response.json(result);
+}
+
+module.exports = { getAssets, buy, transferAssets, confirmTxComplete };

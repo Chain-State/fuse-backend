@@ -229,4 +229,13 @@ const transfer = async (request) => {
   return data;
 };
 
-module.exports = { processTransaction, transfer, walletAssets };
+
+const paymentConfirmation = async ({account, requestId}) => {
+  console.log(`Account in request: ${account}`);
+  const paymentConfirmation = await transaction.find({"account": account, "paymentConfirmation.Body.stkCallback.MerchantRequestID":requestId}).exec();
+  console.log(`Found ${paymentConfirmation}`);
+  return paymentConfirmation;
+ 
+}
+
+module.exports = { processTransaction, transfer, walletAssets, paymentConfirmation};
