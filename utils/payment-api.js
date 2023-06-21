@@ -98,7 +98,7 @@ const accessToken = async () => {
 const b2cSecurityCredential = async () => {
     const unencryptedPassword = process.env.B2C_SANDBOX_PASSWORD
     try {
-        const pub_key_cert = fs.readFileSync('../SandboxCertificate.cer', STR_UTF8);
+        const pub_key_cert = fs.readFileSync('./SandboxCertificate.cer', STR_UTF8);
         const pub_key_obj = crypto.createPublicKey(pub_key_cert)
         const encryptedPassStr = crypto.publicEncrypt({
             key: pub_key_obj,

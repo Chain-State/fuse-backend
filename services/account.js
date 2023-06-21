@@ -7,18 +7,19 @@ const {
     SEED_SIZE,
     WALLET_NAME_PREFIX,
     STR_UTF8,
+    STR_HEX,
 } = require('../constants/api-strings');
 
 const walletServer = WalletServer.init(process.env.WALLET_SERVER);
 
 const createWallet = (userAccountUuid, password) => {
     const mnemonicPhrase = Seed.generateRecoveryPhrase(SEED_SIZE);
-    const { key, encrypted } = cipher(mnemonicPhrase);
+    const { iv, key, encrypted } = cipher(mnemonicPhrase);
     try {
         keyManage.create({
             owner: userAccountUuid,
             seed: encrypted,
-            salt: key.toString(STR_UTF8)
+            salt: key.toString(STR_HEX),
         });
     } catch (error) {
         console.log(`Failed key save: ${error}`);

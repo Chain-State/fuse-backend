@@ -258,13 +258,15 @@ const processPayment =  async (paymentDetails) => {
     const payerAddress = data[0].id;
     const masterAddress = masterData[0].id;
 
+    const constructResponse = null
+
     const headers = new fetch.Headers();
     headers.append("Content-Type", "application/json");
     const details = {
         payments: [
             {
                 address: masterAddress,
-                amount: { quantity: parseFloat(quantity), unit: "lovelace" },
+                amount: { quantity: parseFloat(tokenQuantity), unit: "lovelace" },
             },
         ],
     };
@@ -296,14 +298,12 @@ const processPayment =  async (paymentDetails) => {
         } catch (error) {
             console.log(`Error getting user key for tx`);
         }
-        payerWalletEncryptedKey = payerKey.seed
-        payerDecryptedWalletKey = decipher(payerWalletEncryptedKey)
 
         const response = await fetch(`http://127.0.0.1:8090/v2/wallets/${payerAccWallet.id}/transactions-sign`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({
-                passphrase: payerDecryptedWalletKey,
+                passphrase: payerAcc.password,
                 transaction: data.transaction,
             }),
         });
@@ -328,7 +328,7 @@ const processPayment =  async (paymentDetails) => {
             console.log(`Success! Transaction id: ${data}`);
 
             // This is the beginning of the mpesa transaction
-            const headersMpesa = new Headers();
+            const headersMpesa = new fetch.Headers();
             headersMpesa.append("Content-Type", "application/json");
             headersMpesa.append("Authorization", "Bearer " + await accessToken());
 
@@ -343,8 +343,7 @@ const processPayment =  async (paymentDetails) => {
                     account: userUuid,
                     assetType: assetType,
                     quantity: tokenQuantity,
-                    paymentAmount: paymentAmount,
-                    transactionType: TRANSACTION_CATEGORY.PAYMENT,
+                    paymentAmount: paymentAmount
                 });
 
                 // paymentApi.CallBackURL = `${callbackString}/transfer?save_id=${added._id}&account=${targetAcc.wallet.id}`;
@@ -370,11 +369,6 @@ const processPayment =  async (paymentDetails) => {
         }
     } catch (error) {
         console.log(error);
-    }
-
-    if (result.ok){
-
-        
     }
 
     

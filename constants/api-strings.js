@@ -35,6 +35,7 @@ const ERR_SAVE_FAIL = 'Could not save data';
 const CIPHER_ALGORITHM = 'aes-256-cbc';
 const STR_BASE64 = 'base64';
 const STR_UTF8 = 'utf8';
+const STR_HEX = 'hex';
 
 //transactions
 const ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
@@ -74,6 +75,7 @@ module.exports = {
     CIPHER_ALGORITHM,
     STR_BASE64,
     STR_UTF8,
+    STR_HEX,
     PURCHASE,
     TRANSFER,
     PAYMENT,
