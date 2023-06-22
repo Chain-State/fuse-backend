@@ -21,7 +21,8 @@ const TransactionSchema = new Schema({
  paymentConfirmation: {
    type: Object,
    default: {},
- }
-});
+ }},
+ {timestamps: true}
+);
 
 module.exports = mongoose.model('Transaction', TransactionSchema);

@@ -240,7 +240,11 @@ const paymentConfirmation = async ({account, requestId}) => {
 
 const transactionsList = async (userUuid) => {
 try{
-  return await transaction.find({ account: userUuid}, 'account assetType quantity paymentAmount').exec();
+  const tx = await transaction.find({ account: userUuid}, 'createdAt assetType quantity paymentAmount paymentConfirmation').exec();
+  tx.forEach(element => {
+    console.log(element.updatedAt);
+  });
+  return tx;
 } catch(error){
   console.log(`Could not list of transactions: ${error}`);
 }
