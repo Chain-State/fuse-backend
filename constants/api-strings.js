@@ -15,6 +15,7 @@ const TRANSACT = "/transact";
 const PURCHASE = `${TRANSACT}/buy`;
 const TRANSFER = "/transfer";
 const TX_COMPLETE = `${TRANSACT}/checkPaymentComplete`;
+const TRANSACTIONS_LIST = '/wallet/transactions/:userUuid';
 
 //http headers
 const CONTENT_TYPE = "Content-Type";
@@ -84,4 +85,5 @@ module.exports = {
   KIBANDA_APP_PASSWORD,
   TRANSACTION_DESCRIPTION,
   TX_COMPLETE,
+  TRANSACTIONS_LIST,
 };

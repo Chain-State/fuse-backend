@@ -238,4 +238,12 @@ const paymentConfirmation = async ({account, requestId}) => {
  
 }
 
-module.exports = { processTransaction, transfer, walletAssets, paymentConfirmation};
+const transactionsList = async (userUuid) => {
+try{
+  return await transaction.find({ account: userUuid}, 'createdAt assetType quantity paymentAmount paymentConfirmation').exec();
+} catch(error){
+  console.log(`Could not list of transactions: ${error}`);
+}
+}
+
+module.exports = { processTransaction, transfer, walletAssets, paymentConfirmation, transactionsList};

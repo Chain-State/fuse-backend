@@ -1,3 +1,4 @@
+const { response } = require("express");
 const {
   CLIENT_ERROR,
   REQUIRED_INPUT,
@@ -11,6 +12,7 @@ const {
   transfer,
   walletAssets,
   paymentConfirmation,
+  transactionsList,
 } = require("../services/transaction");
 
 const getAssets = async (request, response) => {
@@ -76,4 +78,15 @@ console.log(`Acc: ${account}, RequestId: ${requestId}`);
   return response.json(result);
 }
 
-module.exports = { getAssets, buy, transferAssets, confirmTxComplete };
+const getTransactionsList = async (request, response) => {
+  if(request.url){
+  let account = request.url;
+    account = account.substring(account.lastIndexOf('/',   ) + 1);
+    const results = await transactionsList(account);
+    console.log(results);
+    response.json(results)
+
+  }
+}
+
+module.exports = { getAssets, buy, transferAssets, confirmTxComplete, getTransactionsList };
